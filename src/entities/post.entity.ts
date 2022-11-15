@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { UserEntity } from './user.entity';
 import { CommentEntity } from './comment.entity';
+import { LikeEntity } from './like.entity';
 
 @Entity('posts')
 export class PostEntity {
@@ -29,4 +30,9 @@ export class PostEntity {
     onUpdate: 'CASCADE',
   })
   comments: CommentEntity;
+
+  @OneToMany(() => LikeEntity, (like) => like.post, {
+    onDelete: 'CASCADE',
+  })
+  like: LikeEntity;
 }
