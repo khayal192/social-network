@@ -1,9 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreatePostDto } from './dto/create-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../entities/user.entity';
 import { Repository } from 'typeorm';
 import { PostEntity } from '../entities/post.entity';
+import { CreatePostDto } from './dto/create-post.dto';
+import { writeFile } from 'fs/promises';
+import { v4 as uuid4 } from 'uuid';
 
 @Injectable()
 export class PostService {
@@ -34,14 +36,27 @@ export class PostService {
     return findPost;
   }
 
-  async createPosts(createPostDto: CreatePostDto, userId: number) {
+  async createPosts(
+    createPostDto: CreatePostDto,
+    userId: number,
+    postUrl: Express.Multer.File,
+  ) {
+    const postImgUrl = uuid4() + postUrl.originalname;
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new HttpException('USER NOT FOUND', HttpStatus.NOT_FOUND);
     }
-    const post = await this.postRepository.create(createPostDto);
+    const post = new PostEntity();
     post.user = user;
-    return this.postRepository.save(post);
+    post.title = createPostDto.title;
+    post.content = createPostDto.content;
+    post.postUrl = postImgUrl;
+
+    const [newPost] = await Promise.all([
+      this.postRepository.save(post),
+      writeFile(`upload/images/${postImgUrl}`, postUrl.buffer),
+    ]);
+    return newPost;
   }
 
   async deletePosts(postId: number, userId: number): Promise<void> {

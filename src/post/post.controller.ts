@@ -7,12 +7,14 @@ import {
   ParseIntPipe,
   Post,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CurrentUser } from '../auth/user.decorator';
 import { CreatePostDto } from './dto/create-post.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('post')
 @Controller('post')
@@ -36,8 +38,14 @@ export class PostController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async createPosts(@CurrentUser() user, @Body() createPostDto: CreatePostDto) {
-    return this.postService.createPosts(createPostDto, user.userId);
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('postUrl'))
+  async createPosts(
+    @CurrentUser() user,
+    @Body() createPostDto: CreatePostDto,
+    postUrl: Express.Multer.File,
+  ) {
+    return this.postService.createPosts(createPostDto, user.userId, postUrl);
   }
 
   @UseGuards(JwtAuthGuard)

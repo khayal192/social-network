@@ -20,6 +20,9 @@ export class PostEntity {
   @Column()
   content: string;
 
+  @Column({ nullable: true })
+  postUrl: string;
+
   @ManyToOne(() => UserEntity, (user) => user.posts, {
     onDelete: 'CASCADE',
   })
