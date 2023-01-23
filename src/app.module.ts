@@ -50,7 +50,7 @@ import { ShareEntity } from './entities/share.entity';
     BannedModule,
     ShareModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
